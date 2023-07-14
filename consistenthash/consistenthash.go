@@ -27,7 +27,7 @@ type Hash func(data []byte) uint32
 
 type Map struct {
 	hash     Hash
-	replicas int
+	replicas int   // 代表虚拟节点
 	keys     []int // Sorted
 	hashMap  map[int]string
 }
@@ -58,7 +58,7 @@ func (m *Map) Add(keys ...string) {
 			m.hashMap[hash] = key
 		}
 	}
-	sort.Ints(m.keys)
+	sort.Ints(m.keys) // 构造有序的 hash 环
 }
 
 // Get gets the closest item in the hash to the provided key.
@@ -73,9 +73,11 @@ func (m *Map) Get(key string) string {
 	idx := sort.Search(len(m.keys), func(i int) bool { return m.keys[i] >= hash })
 
 	// Means we have cycled back to the first replica.
-	if idx == len(m.keys) {
+	if idx == len(m.keys) { // 没有找到
 		idx = 0
 	}
 
 	return m.hashMap[m.keys[idx]]
 }
+
+// https://www.cyhone.com/articles/consistent-hash-of-groupcache/
